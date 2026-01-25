@@ -31,7 +31,7 @@ import {
 import { getRandomPersona, decideBettingAction, decideAPAction } from '../models/CPUPlayer';
 import { createJoker } from '../models/Card';
 import { compareHands } from '../poker/HandEvaluator';
-import { Translations, formatMessage } from '../../utils/i18n';
+import { Translations } from '../../utils/i18n';
 
 // Check if player is still in the round (not folded)
 function isInRound(player: PlayerState): boolean {
@@ -55,7 +55,7 @@ function canAct(player: PlayerState): boolean {
 export function createGameState(
   config: GameConfig = DEFAULT_CONFIG,
   t: Translations,
-  formatMessage: (template: string, values: Record<string, string | number>) => string
+  _formatMessage: (template: string, values: Record<string, string | number>) => string
 ): GameState {
   const players: PlayerState[] = [];
   
@@ -305,7 +305,7 @@ export function setupPhase(
 export function dealCards(
   state: GameState,
   t: Translations,
-  formatMessage: (template: string, values: Record<string, string | number>) => string
+  _formatMessage: (template: string, values: Record<string, string | number>) => string
 ): GameState {
   let deck = [...state.deck];
   const players = state.players.map(player => {
@@ -719,7 +719,7 @@ function checkBettingRoundComplete(
 export function advanceToNextPhase(
   state: GameState,
   t: Translations,
-  formatMessage: (template: string, values: Record<string, string | number>) => string
+  _formatMessage: (template: string, values: Record<string, string | number>) => string
 ): GameState {
   // Reset current bets for next phase
   const players = state.players.map(p => ({
@@ -779,7 +779,7 @@ export function advanceToNextPhase(
 function checkActionPhaseComplete(
   state: GameState,
   t: Translations,
-  formatMessage: (template: string, values: Record<string, string | number>) => string
+  _formatMessage: (template: string, values: Record<string, string | number>) => string
 ): GameState {
   const activePlayers = state.players.filter(p => isInRound(p));
   
