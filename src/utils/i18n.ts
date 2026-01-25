@@ -76,6 +76,23 @@ export interface Translations {
     gameEnd: string;
     completeVictory: string;
     chipsExhausted: string;
+    playerFolded: string;
+    playerChecked: string;
+    playerCalled: string;
+    playerBet: string;
+    playerRaised: string;
+    playerAllIn: string;
+    playerRedraw: string;
+    playerSearch: string;
+    playerAdd: string;
+    playerBuyJoker: string;
+    playerPass: string;
+    winnerWithHand: string;
+    giantKilling: string;
+    bonusOnly: string;
+    finalChips: string;
+    winnerName: string;
+    allPlayersDefeated: string;
   };
   
   // UI
@@ -89,6 +106,44 @@ export interface Translations {
     homeButton: string;
     searchWarning: string;
     searchCost: string;
+    gameDescription: string;
+    nextRound: string;
+    completeVictoryTitle: string;
+    gameOverTitle: string;
+    chipsExhausted: string;
+    betting: string;
+    call: string;
+    bet: string;
+    raise: string;
+    close: string;
+    times: string;
+    occurred: string;
+    netProfit: string;
+    won: string;
+    lost: string;
+    bestHand: string;
+    soFar: string;
+    currentStreak: string;
+    averageDice: string;
+    actionsUsed: string;
+    redraw: string;
+    search: string;
+    add: string;
+    joker: string;
+    gameRules: string;
+    basicRules: string;
+    apActions: string;
+    giantKilling: string;
+    handRankings: string;
+    bettingRules: string;
+    tips: string;
+    bonus2x: string;
+    tutorialBasicRules: string[];
+    tutorialAPActions: string[];
+    tutorialGiantKilling: string[];
+    tutorialHandRankings: string[];
+    tutorialBetting: string[];
+    tutorialTips: string[];
   };
   
   // Statistics
@@ -185,6 +240,23 @@ const translations: Record<Language, Translations> = {
       gameEnd: 'Game End',
       completeVictory: '🏆 {name} complete victory! Game over!',
       chipsExhausted: 'Chips exhausted...',
+      playerFolded: '{name} folded',
+      playerChecked: '{name} checked',
+      playerCalled: '{name} called {amount}',
+      playerBet: '{name} bet {amount}',
+      playerRaised: '{name} raised to {amount}',
+      playerAllIn: '{name} went ALL-IN! ({amount})',
+      playerRedraw: '{name} exchanged 1 card (Cost: {cost} AP)',
+      playerSearch: '{name} searched (Cost: {cost} AP)',
+      playerAdd: '{name} added 1 card (Cost: {cost} AP)',
+      playerBuyJoker: '{name} bought a Joker! (Cost: {cost} AP)',
+      playerPass: '{name} passed',
+      winnerWithHand: '{name} wins! {hand} for {amount} chips',
+      giantKilling: '🎉 GIANT KILLING! 🎉 {name} made a comeback with AP {ap}! {message} + Bonus {bonus} ({type})',
+      bonusOnly: '{message} + Bonus {bonus} ({type})',
+      finalChips: '{name} final chips: {chips}',
+      winnerName: 'Winner: {name}',
+      allPlayersDefeated: 'Defeated all players!',
     },
     ui: {
       title: '🎲 Double Dice Poker',
@@ -196,6 +268,77 @@ const translations: Record<Language, Translations> = {
       homeButton: '🏠 Return to Home',
       searchWarning: '⚠️ Cannot cancel after viewing cards',
       searchCost: '3 AP consumed',
+      gameDescription: 'Use AP (Action Points) determined by dice to strengthen your hand and compete in poker!',
+      nextRound: 'Next Round',
+      completeVictoryTitle: 'Complete Victory!',
+      gameOverTitle: 'Game Over',
+      chipsExhausted: 'Chips exhausted...',
+      betting: 'Betting',
+      call: 'Call',
+      bet: 'Bet',
+      raise: 'Raise',
+      close: 'Close',
+      times: 'times',
+      occurred: 'occurred',
+      netProfit: 'Net Profit',
+      won: 'Won',
+      lost: 'Lost',
+      bestHand: 'Best Hand',
+      soFar: 'so far',
+      currentStreak: 'Current: {streak} win streak',
+      averageDice: 'Average dice value',
+      actionsUsed: 'Actions Used',
+      redraw: 'Redraw',
+      search: 'Search',
+      add: 'Add',
+      joker: 'Joker',
+      gameRules: 'Game Rules',
+      basicRules: 'Basic Rules',
+      apActions: 'AP Actions',
+      giantKilling: 'Giant Killing',
+      handRankings: 'Hand Rankings (weakest to strongest)',
+      bettingRules: 'Betting',
+      tips: 'Tips',
+      bonus2x: '💰 Bonus 2x! 💰',
+      tutorialBasicRules: [
+        'Roll 2 dice to determine AP (Action Points)',
+        'If you roll doubles (same number), you can buy a Joker',
+        '5 cards are dealt each round',
+        'Use AP to strengthen your hand',
+        'Compete in betting phases',
+      ],
+      tutorialAPActions: [
+        '🔄 Redraw (1AP): Discard 1 card, draw 1 from deck',
+        '🔍 Search (4AP): Peek at 3 cards, choose 1, discard 1 from hand (cannot cancel)',
+        '➕ Add (3AP): Add 1 card from deck (max 7 cards)',
+        '🃏 Buy Joker (AP/2): Only when rolling doubles. Exchange 1 card for Joker',
+      ],
+      tutorialGiantKilling: [
+        'When a player with AP 4 or less wins, a special bonus occurs!',
+        'Loser AP ≤ 10 → 1.5x bonus (text only)',
+        'Loser AP ≥ 11 → 2.0x bonus (with animation)',
+        'When defeating multiple opponents, appropriate multipliers are applied per loser',
+      ],
+      tutorialHandRankings: [
+        'High Card', 'One Pair', 'Two Pair', 'Three of a Kind',
+        'Straight', 'Flush', 'Full House', 'Four of a Kind',
+        'Straight Flush', 'Royal Flush', 'Five of a Kind (Joker)',
+      ],
+      tutorialBetting: [
+        'Check: Pass without betting',
+        'Bet: Place the first bet',
+        'Call: Match the current bet amount',
+        'Raise: Increase the bet amount',
+        'Fold: Give up',
+        'All-In: Bet all chips',
+      ],
+      tutorialTips: [
+        'Hand strength is displayed',
+        'Low AP can still win with Giant Killing!',
+        'Search is powerful but cannot be cancelled once viewed',
+        'The strongest 5 cards are selected from 7 cards in hand',
+        'Side pot system ensures fair distribution even with all-ins',
+      ],
     },
     stats: {
       roundsPlayed: 'Rounds Played',
@@ -288,6 +431,23 @@ const translations: Record<Language, Translations> = {
       gameEnd: 'ゲーム終了',
       completeVictory: '🏆 {name} の完全勝利！ゲーム終了！',
       chipsExhausted: 'チップが尽きてしまいました...',
+      playerFolded: '{name} がフォールド',
+      playerChecked: '{name} がチェック',
+      playerCalled: '{name} が {amount} でコール',
+      playerBet: '{name} が {amount} をベット',
+      playerRaised: '{name} が {amount} にレイズ',
+      playerAllIn: '{name} がオールイン！ ({amount})',
+      playerRedraw: '{name} が1枚交換 (コスト: {cost} AP)',
+      playerSearch: '{name} がサーチ (コスト: {cost} AP)',
+      playerAdd: '{name} が1枚追加 (コスト: {cost} AP)',
+      playerBuyJoker: '{name} がジョーカーを購入！ (コスト: {cost} AP)',
+      playerPass: '{name} がパス',
+      winnerWithHand: '{name} の勝利！ {hand} で {amount} チップ獲得',
+      giantKilling: '🎉 GIANT KILLING! 🎉 {name} がAP {ap} で大逆転！ {message} + ボーナス {bonus} ({type})',
+      bonusOnly: '{message} + ボーナス {bonus} ({type})',
+      finalChips: '{name} の最終チップ: {chips}',
+      winnerName: '勝者: {name}',
+      allPlayersDefeated: '全員のプレイヤーを倒しました！',
     },
     ui: {
       title: '🎲 Double Dice Poker',
@@ -299,6 +459,77 @@ const translations: Record<Language, Translations> = {
       homeButton: '🏠 ホームに戻る',
       searchWarning: '⚠️ カードを見たためキャンセルできません',
       searchCost: '3 AP消費済み',
+      gameDescription: 'サイコロで決まるAP（行動ポイント）を使って手札を強化し、ポーカーで勝負！',
+      nextRound: '次のラウンドへ',
+      completeVictoryTitle: '完全勝利！',
+      gameOverTitle: 'ゲームオーバー',
+      chipsExhausted: 'チップが尽きてしまいました...',
+      betting: 'ベッティング',
+      call: 'コール',
+      bet: 'ベット',
+      raise: 'レイズ',
+      close: '閉じる',
+      times: '回',
+      occurred: '発生',
+      netProfit: '純利益',
+      won: '獲得',
+      lost: '損失',
+      bestHand: '最高の手',
+      soFar: 'これまでに出した',
+      currentStreak: '現在: {streak}連勝',
+      averageDice: 'サイコロの平均値',
+      actionsUsed: '使用したアクション',
+      redraw: 'リドロー',
+      search: 'サーチ',
+      add: 'アド',
+      joker: 'ジョーカー',
+      gameRules: 'ゲームのルール',
+      basicRules: '基本ルール',
+      apActions: 'APアクション',
+      giantKilling: 'ジャイアントキリング',
+      handRankings: '手の強さ（弱い順）',
+      bettingRules: 'ベッティング',
+      tips: 'ヒント',
+      bonus2x: '💰 ボーナス 2倍！ 💰',
+      tutorialBasicRules: [
+        'サイコロを2つ振ってAP（行動ポイント）を決定します',
+        'ゾロ目（同じ数字）が出ると、ジョーカーを購入できます',
+        '各ラウンドで5枚のカードが配られます',
+        'APを使って手札を強化できます',
+        'ベッティングフェーズで勝負します',
+      ],
+      tutorialAPActions: [
+        '🔄 リドロー (1AP): 手札を1枚捨て、山札から1枚引く',
+        '🔍 サーチ (4AP): 山札から3枚見て1枚選び、手札から1枚捨てる（キャンセル不可）',
+        '➕ アド (3AP): 山札から1枚追加（最大7枚まで）',
+        '🃏 ジョーカー購入 (AP/2): ゾロ目時のみ。手札1枚をジョーカーに交換',
+      ],
+      tutorialGiantKilling: [
+        'APが4以下のプレイヤーが勝利すると、特別なボーナスが発生します！',
+        '敗者のAPが10以下 → 1.5倍ボーナス（表記のみ）',
+        '敗者のAPが11以上 → 2.0倍ボーナス（演出あり）',
+        '複数の相手を倒した場合、各敗者ごとに適切な倍率が適用されます',
+      ],
+      tutorialHandRankings: [
+        'ハイカード', 'ワンペア', 'ツーペア', 'スリーカード',
+        'ストレート', 'フラッシュ', 'フルハウス', 'フォーカード',
+        'ストレートフラッシュ', 'ロイヤルフラッシュ', 'ファイブカード（ジョーカー）',
+      ],
+      tutorialBetting: [
+        'チェック: ベットせずにパス',
+        'ベット: 最初のベットを置く',
+        'コール: 現在のベット額に合わせる',
+        'レイズ: ベット額を上げる',
+        'フォールド: 降りる',
+        'オールイン: 全チップを賭ける',
+      ],
+      tutorialTips: [
+        '手の強さが表示されます',
+        '低APでもジャイアントキリングで逆転可能！',
+        'サーチは強力ですが、一度見たらキャンセルできません',
+        '7枚の手札から最強の5枚が選ばれます',
+        'サイドポットシステムで、オールイン時も公平に分配されます',
+      ],
     },
     stats: {
       roundsPlayed: 'プレイ回数',

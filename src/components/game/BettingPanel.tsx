@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { BettingAction } from '../../core/types';
 import { Button } from '../ui/Button';
+import { useGameStore } from '../../store/gameStore';
 
 interface BettingPanelProps {
   availableActions: BettingAction[];
@@ -26,6 +27,8 @@ export function BettingPanel({
   pot,
   onAction,
 }: BettingPanelProps) {
+  const { getTranslations } = useGameStore();
+  const t = getTranslations();
   const toCall = currentBet - playerBet;
   const [raiseAmount, setRaiseAmount] = useState(toCall + minBet);
   const [showRaiseSlider, setShowRaiseSlider] = useState(false);
@@ -71,10 +74,10 @@ export function BettingPanel({
       className="bg-black/40 backdrop-blur-md rounded-xl p-3 shadow-2xl border border-white/10"
     >
       <div className="flex items-center justify-center gap-3 mb-2">
-        <span className="text-gray-400 text-xs">Betting</span>
+        <span className="text-gray-400 text-xs">{t.ui.betting}</span>
         {toCall > 0 && (
           <span className="text-yellow-400 text-sm font-bold">
-            Call: {toCall}
+            {t.ui.call}: {toCall}
           </span>
         )}
       </div>
@@ -88,7 +91,7 @@ export function BettingPanel({
         >
           <div className="flex items-center justify-between mb-1">
             <span className="text-gray-400 text-xs">
-              {canBet ? 'Bet' : 'Raise'}
+              {canBet ? t.ui.bet : t.ui.raise}
             </span>
             <span className="text-yellow-400 font-bold">
               {raiseAmount}
@@ -130,37 +133,37 @@ export function BettingPanel({
       <div className="flex flex-wrap gap-2 justify-center">
         {canFold && (
           <Button variant="danger" onClick={() => onAction('fold')} size="md">
-            フォールド
+            {t.common.fold}
           </Button>
         )}
         
         {canCheck && (
           <Button variant="secondary" onClick={() => onAction('check')} size="md">
-            チェック
+            {t.common.check}
           </Button>
         )}
         
         {canCall && (
           <Button variant="success" onClick={() => onAction('call')} size="md">
-            コール ({toCall})
+            {t.common.call} ({toCall})
           </Button>
         )}
         
         {canBet && (
           <Button variant="primary" onClick={handleBet} size="md">
-            {showRaiseSlider ? `ベット (${raiseAmount})` : 'ベット'}
+            {showRaiseSlider ? `${t.ui.bet} (${raiseAmount})` : t.ui.bet}
           </Button>
         )}
         
         {canRaise && (
           <Button variant="primary" onClick={handleRaise} size="md">
-            {showRaiseSlider ? `レイズ (${raiseAmount})` : 'レイズ'}
+            {showRaiseSlider ? `${t.ui.raise} (${raiseAmount})` : t.ui.raise}
           </Button>
         )}
         
         {canAllIn && (
           <Button variant="danger" onClick={() => onAction('all-in')} size="md">
-            オールイン ({playerChips})
+            {t.common.allIn} ({playerChips})
           </Button>
         )}
         

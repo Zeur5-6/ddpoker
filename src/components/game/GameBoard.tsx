@@ -5,6 +5,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGameStore } from '../../store/gameStore';
 import { GamePhase } from '../../core/types';
+import { formatMessage } from '../../utils/i18n';
 import { PlayerArea, OpponentArea } from './PlayerArea';
 import { BettingPanel } from './BettingPanel';
 import { ActionPanel } from './ActionPanel';
@@ -154,7 +155,7 @@ export function GameBoard() {
               className="flex flex-col items-center gap-3"
             >
               <p className="text-gray-400 text-center text-sm max-w-md">
-                ダイスを振ってAP（行動ポイント）を決め、カードを強化し、相手を出し抜いて勝利を掴もう！
+                {t.ui.gameDescription}
               </p>
               <div className="flex gap-2">
                 <Button
@@ -186,7 +187,7 @@ export function GameBoard() {
                   rollDiceAndSetup();
                 }}
               >
-                🎲 ゲーム開始
+                {t.ui.startGame}
               </Button>
             </motion.div>
           )}
@@ -211,7 +212,7 @@ export function GameBoard() {
               >
                 <div className="text-center">
                   <p className="text-yellow-400 text-xl font-bold">
-                    {players.find(p => p.id === winner)?.name} の勝利！
+                    {formatMessage(t.messages.winner, { name: players.find(p => p.id === winner)?.name || '' })}
                   </p>
                 </div>
                 
@@ -222,7 +223,7 @@ export function GameBoard() {
                     rollDiceAndSetup();
                   }}
                 >
-                  次のラウンドへ
+                  {t.ui.nextRound}
                 </Button>
               </motion.div>
             );
@@ -267,13 +268,13 @@ export function GameBoard() {
                             🏆
                           </motion.div>
                           <h2 className="text-3xl font-bold text-yellow-400 mb-2">
-                            完全勝利！
+                            {t.ui.completeVictoryTitle}
                           </h2>
                           <p className="text-white text-lg mb-4">
-                            全員のプレイヤーを倒しました！
+                            {t.messages.allPlayersDefeated}
                           </p>
                           <p className="text-gray-300 text-sm">
-                            {humanPlayer.name} の最終チップ: {humanPlayer.chips.toLocaleString()}
+                            {formatMessage(t.messages.finalChips, { name: humanPlayer.name, chips: humanPlayer.chips.toLocaleString() })}
                           </p>
                         </>
                       ) : isHumanLoser ? (
@@ -287,13 +288,13 @@ export function GameBoard() {
                             💀
                           </motion.div>
                           <h2 className="text-3xl font-bold text-red-400 mb-2">
-                            ゲームオーバー
+                            {t.ui.gameOverTitle}
                           </h2>
                           <p className="text-white text-lg mb-4">
-                            チップが尽きてしまいました...
+                            {t.ui.chipsExhausted}
                           </p>
                           <p className="text-gray-300 text-sm">
-                            勝者: {players.find(p => p.id === winner)?.name}
+                            {formatMessage(t.messages.winnerName, { name: players.find(p => p.id === winner)?.name || '' })}
                           </p>
                         </>
                       ) : null}
@@ -307,7 +308,7 @@ export function GameBoard() {
                             initGame();
                           }}
                         >
-                          🏠 ホームに戻る
+                          {t.ui.homeButton}
                         </Button>
                       </div>
                     </div>

@@ -3,8 +3,12 @@
 // ========================================
 
 import { motion } from 'framer-motion';
+import { useGameStore } from '../../store/gameStore';
 
 export function GiantKillingOverlay() {
+  const { getTranslations } = useGameStore();
+  const t = getTranslations();
+  
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -110,7 +114,7 @@ export function GiantKillingOverlay() {
             transition={{ delay: 0.2 }}
             className="mt-2 text-lg sm:text-xl text-yellow-200 font-bold"
           >
-            💰 ボーナス 2倍！ 💰
+            {t.ui.bonus2x}
           </motion.p>
         </div>
       </motion.div>

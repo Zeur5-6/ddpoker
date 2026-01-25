@@ -3,9 +3,9 @@
 // ========================================
 
 import { motion } from 'framer-motion';
-import { GameStatistics } from '../../core/types';
-import { getHandRankName } from '../../core/poker/HandEvaluator';
+import { GameStatistics, HandRank } from '../../core/types';
 import { Button } from './Button';
+import { useGameStore } from '../../store/gameStore';
 
 interface StatisticsPanelProps {
   statistics: GameStatistics;
@@ -13,6 +13,8 @@ interface StatisticsPanelProps {
 }
 
 export function StatisticsPanel({ statistics, onClose }: StatisticsPanelProps) {
+  const { getTranslations, language } = useGameStore();
+  const t = getTranslations();
   const winRate = statistics.roundsPlayed > 0
     ? Math.round((statistics.roundsWon / statistics.roundsPlayed) * 100)
     : 0;
@@ -35,7 +37,7 @@ export function StatisticsPanel({ statistics, onClose }: StatisticsPanelProps) {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-bold text-yellow-400">📊 統計情報</h2>
+          <h2 className="text-2xl font-bold text-yellow-400">📊 {t.common.statistics}</h2>
           <Button variant="ghost" onClick={onClose} size="sm">
             ✕
           </Button>
@@ -44,75 +46,75 @@ export function StatisticsPanel({ statistics, onClose }: StatisticsPanelProps) {
         <div className="grid grid-cols-2 gap-4">
           {/* Win Rate */}
           <div className="bg-black/30 rounded-lg p-4">
-            <div className="text-gray-400 text-sm mb-1">勝率</div>
+            <div className="text-gray-400 text-sm mb-1">{language === 'en' ? 'Win Rate' : '勝率'}</div>
             <div className="text-3xl font-bold text-green-400">{winRate}%</div>
             <div className="text-gray-500 text-xs mt-1">
-              {statistics.roundsWon}勝 / {statistics.roundsPlayed}戦
+              {statistics.roundsWon}{language === 'en' ? ' wins' : '勝'} / {statistics.roundsPlayed}{language === 'en' ? ' rounds' : '戦'}
             </div>
           </div>
           
           {/* Giant Killings */}
           <div className="bg-black/30 rounded-lg p-4">
-            <div className="text-gray-400 text-sm mb-1">ジャイアントキリング</div>
+            <div className="text-gray-400 text-sm mb-1">{t.stats.giantKillings}</div>
             <div className="text-3xl font-bold text-orange-400">{statistics.giantKillings}</div>
-            <div className="text-gray-500 text-xs mt-1">回発生</div>
+            <div className="text-gray-500 text-xs mt-1">{t.ui.times} {t.ui.occurred}</div>
           </div>
           
           {/* Net Chips */}
           <div className="bg-black/30 rounded-lg p-4">
-            <div className="text-gray-400 text-sm mb-1">純利益</div>
+            <div className="text-gray-400 text-sm mb-1">{t.ui.netProfit}</div>
             <div className={`text-3xl font-bold ${netChips >= 0 ? 'text-green-400' : 'text-red-400'}`}>
               {netChips >= 0 ? '+' : ''}{netChips.toLocaleString()}
             </div>
             <div className="text-gray-500 text-xs mt-1">
-              獲得: {statistics.totalChipsWon.toLocaleString()} / 損失: {statistics.totalChipsLost.toLocaleString()}
+              {t.ui.won}: {statistics.totalChipsWon.toLocaleString()} / {t.ui.lost}: {statistics.totalChipsLost.toLocaleString()}
             </div>
           </div>
           
           {/* Best Hand */}
           <div className="bg-black/30 rounded-lg p-4">
-            <div className="text-gray-400 text-sm mb-1">最高の手</div>
+            <div className="text-gray-400 text-sm mb-1">{t.ui.bestHand}</div>
             <div className="text-xl font-bold text-purple-400">
-              {getHandRankName(statistics.bestHand)}
+              {t.handRanks[HandRank[statistics.bestHand] as keyof typeof t.handRanks]}
             </div>
-            <div className="text-gray-500 text-xs mt-1">これまでに出した</div>
+            <div className="text-gray-500 text-xs mt-1">{t.ui.soFar}</div>
           </div>
           
           {/* Win Streak */}
           <div className="bg-black/30 rounded-lg p-4">
-            <div className="text-gray-400 text-sm mb-1">連勝記録</div>
+            <div className="text-gray-400 text-sm mb-1">{t.stats.longestWinStreak}</div>
             <div className="text-2xl font-bold text-yellow-400">{statistics.longestWinStreak}</div>
             <div className="text-gray-500 text-xs mt-1">
-              現在: {statistics.currentWinStreak}連勝
+              {t.ui.currentStreak.replace('{streak}', statistics.currentWinStreak.toString())}
             </div>
           </div>
           
           {/* Average AP */}
           <div className="bg-black/30 rounded-lg p-4">
-            <div className="text-gray-400 text-sm mb-1">平均AP</div>
+            <div className="text-gray-400 text-sm mb-1">{t.stats.averageAP}</div>
             <div className="text-2xl font-bold text-blue-400">{statistics.averageAP}</div>
-            <div className="text-gray-500 text-xs mt-1">サイコロの平均値</div>
+            <div className="text-gray-500 text-xs mt-1">{t.ui.averageDice}</div>
           </div>
         </div>
         
         {/* Actions Used */}
         <div className="mt-4 bg-black/30 rounded-lg p-4">
-          <div className="text-gray-400 text-sm mb-3">使用したアクション</div>
+          <div className="text-gray-400 text-sm mb-3">{t.ui.actionsUsed}</div>
           <div className="grid grid-cols-2 gap-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-gray-300">🔄 リドロー:</span>
+              <span className="text-gray-300">🔄 {t.ui.redraw}:</span>
               <span className="text-white font-bold">{statistics.actionsUsed.redraw}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-300">🔍 サーチ:</span>
+              <span className="text-gray-300">🔍 {t.ui.search}:</span>
               <span className="text-white font-bold">{statistics.actionsUsed.search}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-300">➕ アド:</span>
+              <span className="text-gray-300">➕ {t.ui.add}:</span>
               <span className="text-white font-bold">{statistics.actionsUsed.add}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-300">🃏 ジョーカー:</span>
+              <span className="text-gray-300">🃏 {t.ui.joker}:</span>
               <span className="text-white font-bold">{statistics.actionsUsed.buyJoker}</span>
             </div>
           </div>
