@@ -27,35 +27,36 @@ export function ActionPanel({
   const [selectedSearchCard, setSelectedSearchCard] = useState<number | null>(null);
   const [searchStep, setSearchStep] = useState<'select' | 'discard'>('select');
   
-  // Get search functions from store
-  const { searchCards, previewSearchCards, clearSearchCards } = useGameStore();
+  // Get search functions and translations from store
+  const { searchCards, previewSearchCards, clearSearchCards, getTranslations, language } = useGameStore();
+  const t = getTranslations();
   
   const remainingAP = getRemainingAP(player);
   
   const actionInfo: Record<APAction, { name: string; description: string; icon: string }> = {
     redraw: {
-      name: 'リドロー',
-      description: '手札を1枚捨て、山札から1枚引く',
+      name: t.actions.redraw.name,
+      description: t.actions.redraw.description,
       icon: '🔄',
     },
     search: {
-      name: 'サーチ',
-      description: '山札から3枚見て1枚選ぶ',
+      name: t.actions.search.name,
+      description: t.actions.search.description,
       icon: '🔍',
     },
     add: {
-      name: 'アド',
-      description: '山札から1枚追加（最大7枚）',
+      name: t.actions.add.name,
+      description: t.actions.add.description,
       icon: '➕',
     },
     buyJoker: {
-      name: 'ジョーカー購入',
-      description: '手札1枚をジョーカーに交換',
+      name: t.actions.buyJoker.name,
+      description: t.actions.buyJoker.description,
       icon: '🃏',
     },
     pass: {
-      name: 'パス',
-      description: 'APを全て消費して終了',
+      name: t.actions.pass.name,
+      description: t.actions.pass.description,
       icon: '⏭️',
     },
   };
@@ -242,7 +243,7 @@ export function ActionPanel({
               </div>
             ) : (
               <div className="flex flex-col items-center gap-3">
-                <div className="text-gray-300 text-sm">手札から捨てるカードを選択:</div>
+                <div className="text-gray-300 text-sm">{language === 'en' ? 'Select a card to discard:' : '手札から捨てるカードを選択:'}</div>
                 <div className="flex justify-center gap-2">
                   {player.hand.map((card, index) => (
                     <div key={`hand-${index}`} onClick={() => handleCardSelect(index)} className="cursor-pointer">

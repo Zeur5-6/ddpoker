@@ -273,19 +273,21 @@ export function compareHands(a: HandResult, b: HandResult): number {
 }
 
 // Get hand rank name
-export function getHandRankName(rank: HandRank): string {
-  const names: Record<HandRank, string> = {
-    [HandRank.HIGH_CARD]: 'ハイカード',
-    [HandRank.ONE_PAIR]: 'ワンペア',
-    [HandRank.TWO_PAIR]: 'ツーペア',
-    [HandRank.THREE_OF_A_KIND]: 'スリーカード',
-    [HandRank.STRAIGHT]: 'ストレート',
-    [HandRank.FLUSH]: 'フラッシュ',
-    [HandRank.FULL_HOUSE]: 'フルハウス',
-    [HandRank.FOUR_OF_A_KIND]: 'フォーカード',
-    [HandRank.STRAIGHT_FLUSH]: 'ストレートフラッシュ',
-    [HandRank.ROYAL_FLUSH]: 'ロイヤルフラッシュ',
-    [HandRank.FIVE_OF_A_KIND]: 'ファイブカード',
+// Note: This function is deprecated. Use translations from i18n instead.
+// Kept for backward compatibility, but components should use t().handRanks[rank]
+export function getHandRankName(rank: HandRank, lang: 'en' | 'ja' = 'ja'): string {
+  const names: Record<HandRank, Record<'en' | 'ja', string>> = {
+    [HandRank.HIGH_CARD]: { en: 'High Card', ja: 'ハイカード' },
+    [HandRank.ONE_PAIR]: { en: 'One Pair', ja: 'ワンペア' },
+    [HandRank.TWO_PAIR]: { en: 'Two Pair', ja: 'ツーペア' },
+    [HandRank.THREE_OF_A_KIND]: { en: 'Three of a Kind', ja: 'スリーカード' },
+    [HandRank.STRAIGHT]: { en: 'Straight', ja: 'ストレート' },
+    [HandRank.FLUSH]: { en: 'Flush', ja: 'フラッシュ' },
+    [HandRank.FULL_HOUSE]: { en: 'Full House', ja: 'フルハウス' },
+    [HandRank.FOUR_OF_A_KIND]: { en: 'Four of a Kind', ja: 'フォーカード' },
+    [HandRank.STRAIGHT_FLUSH]: { en: 'Straight Flush', ja: 'ストレートフラッシュ' },
+    [HandRank.ROYAL_FLUSH]: { en: 'Royal Flush', ja: 'ロイヤルフラッシュ' },
+    [HandRank.FIVE_OF_A_KIND]: { en: 'Five of a Kind', ja: 'ファイブカード' },
   };
-  return names[rank];
+  return names[rank][lang];
 }

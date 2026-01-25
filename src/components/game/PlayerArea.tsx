@@ -3,11 +3,11 @@
 // ========================================
 
 import { motion } from 'framer-motion';
-import { PlayerState, GamePhase } from '../../core/types';
+import { PlayerState, GamePhase, HandRank } from '../../core/types';
 import { Card } from '../ui/Card';
 import { evaluatePlayerHand } from '../../core/models/Player';
-import { getHandRankName } from '../../core/poker/HandEvaluator';
 import { getPersonaName } from '../../core/models/CPUPlayer';
+import { useGameStore } from '../../store/gameStore';
 
 interface PlayerAreaProps {
   player: PlayerState;
@@ -29,6 +29,8 @@ export function PlayerArea({
   selectedCardIndex,
   position,
 }: PlayerAreaProps) {
+  const { getTranslations } = useGameStore();
+  const t = getTranslations();
   const isHuman = player.isHuman;
   const handResult = player.hand.length >= 5 ? evaluatePlayerHand(player) : null;
   
@@ -84,15 +86,15 @@ export function PlayerArea({
             {/* Eliminated: 0 chips and not all-in (truly out of the game) */}
             {player.chips <= 0 && !player.isAllIn && player.currentBet <= 0 ? (
               <span className="bg-gray-700 text-gray-300 text-xs px-2 py-0.5 rounded-full">
-                脱落
+                {t.common.eliminated}
               </span>
             ) : player.isAllIn ? (
               <span className="bg-red-600 text-white text-xs px-2 py-0.5 rounded-full font-bold animate-pulse">
-                ALL-IN
+                {t.common.allIn}
               </span>
             ) : player.isFolded && (
               <span className="bg-red-500/50 text-white text-xs px-2 py-0.5 rounded-full">
-                FOLD
+                {t.common.fold}
               </span>
             )}
           </div>
@@ -134,7 +136,7 @@ export function PlayerArea({
           animate={{ opacity: 1, scale: 1 }}
           className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-3 py-1 rounded-full text-sm font-bold"
         >
-          {getHandRankName(handResult.rank)}
+          {t.handRanks[HandRank[handResult.rank] as keyof typeof t.handRanks]}
         </motion.div>
       )}
     </motion.div>
@@ -153,6 +155,8 @@ export function OpponentArea({
   phase: GamePhase;
   showCards: boolean;
 }) {
+  const { getTranslations } = useGameStore();
+  const t = getTranslations();
   const handResult = player.hand.length >= 5 && showCards ? evaluatePlayerHand(player) : null;
   
   return (
@@ -183,11 +187,11 @@ export function OpponentArea({
         )}
         {/* Eliminated: 0 chips and not all-in */}
         {player.chips <= 0 && !player.isAllIn && player.currentBet <= 0 ? (
-          <span className="bg-gray-700 text-gray-300 px-1 rounded-full">脱落</span>
+          <span className="bg-gray-700 text-gray-300 px-1 rounded-full">{t.common.eliminated}</span>
         ) : player.isAllIn ? (
-          <span className="bg-red-600 text-white px-1 rounded-full animate-pulse">ALL-IN</span>
+          <span className="bg-red-600 text-white px-1 rounded-full animate-pulse">{t.common.allIn}</span>
         ) : player.isFolded && (
-          <span className="text-red-400">FOLD</span>
+          <span className="text-red-400">{t.common.fold}</span>
         )}
       </div>
       
@@ -207,7 +211,7 @@ export function OpponentArea({
       {/* Hand result */}
       {handResult && (
         <span className="bg-purple-600/80 text-white text-[10px] px-1.5 py-0.5 rounded-full">
-          {getHandRankName(handResult.rank)}
+          {t.handRanks[HandRank[handResult.rank] as keyof typeof t.handRanks]}
         </span>
       )}
       

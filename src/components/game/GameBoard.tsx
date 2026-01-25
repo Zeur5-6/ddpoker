@@ -20,6 +20,7 @@ export function GameBoard() {
     gameState,
     statistics,
     uiState,
+    language,
     isDiceRolling,
     initGame,
     startRound,
@@ -32,7 +33,11 @@ export function GameBoard() {
     getHumanPlayer,
     toggleStatistics,
     toggleTutorial,
+    setLanguage,
+    getTranslations,
   } = useGameStore();
+  
+  const t = getTranslations();
   
   const { phase, players, pot, pots, currentPlayerIndex, dealerIndex, message, winner, isGiantKilling } = gameState;
   const humanPlayer = getHumanPlayer();
@@ -63,13 +68,21 @@ export function GameBoard() {
               </span>
             )}
             <span className="text-white text-sm font-bold px-2 py-0.5 bg-white/10 rounded">
-              {getPhaseLabel(phase)}
+              {t.phases[phase] || phase}
             </span>
+            {/* Language switcher */}
+            <button
+              onClick={() => setLanguage(language === 'en' ? 'ja' : 'en')}
+              className="text-gray-400 hover:text-white text-sm px-2 py-1 rounded hover:bg-white/10 transition font-bold"
+              title={language === 'en' ? 'Switch to Japanese' : '日本語に切り替え'}
+            >
+              {language === 'en' ? '🇯🇵' : '🇺🇸'}
+            </button>
             {/* Statistics button */}
             <button
               onClick={toggleStatistics}
               className="text-gray-400 hover:text-white text-sm px-2 py-1 rounded hover:bg-white/10 transition"
-              title="統計情報"
+              title={t.common.statistics}
             >
               📊
             </button>
@@ -77,7 +90,7 @@ export function GameBoard() {
             <button
               onClick={toggleTutorial}
               className="text-gray-400 hover:text-white text-sm px-2 py-1 rounded hover:bg-white/10 transition"
-              title="チュートリアル"
+              title={t.common.tutorial}
             >
               ❓
             </button>
@@ -407,15 +420,4 @@ export function GameBoard() {
   );
 }
 
-function getPhaseLabel(phase: GamePhase): string {
-  const labels: Record<GamePhase, string> = {
-    [GamePhase.LOBBY]: 'ロビー',
-    [GamePhase.SETUP]: 'セットアップ',
-    [GamePhase.BET_PHASE_1]: 'ベット #1',
-    [GamePhase.DEAL]: '配布中',
-    [GamePhase.ACTION_PHASE]: 'アクション',
-    [GamePhase.BET_PHASE_2]: 'ベット #2',
-    [GamePhase.SHOWDOWN]: 'ショーダウン',
-  };
-  return labels[phase];
-}
+// Removed getPhaseLabel - now using translations

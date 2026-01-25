@@ -14,7 +14,9 @@ import {
   Card,
   GameStatistics,
   HandRank,
+  Language,
 } from '../core/types';
+import { getLanguage, setLanguage, t, type Translations } from '../utils/i18n';
 import {
   createGameState,
   startNewRound,
@@ -38,6 +40,9 @@ interface GameStore {
   
   // Statistics
   statistics: GameStatistics;
+  
+  // Language
+  language: Language;
   
   // UI State
   uiState: UIState;
@@ -87,6 +92,10 @@ interface GameStore {
   updateStatistics: (roundWon: boolean, giantKilling: boolean, chipsWon: number, bestHand: HandRank, apUsed: APAction[]) => void;
   toggleStatistics: () => void;
   toggleTutorial: () => void;
+  
+  // Language
+  setLanguage: (lang: Language) => void;
+  getTranslations: () => Translations;
 }
 
 // Delay helper for animations
@@ -117,6 +126,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   gameState: createGameState(),
   config: DEFAULT_CONFIG,
   statistics: initialStatistics,
+  language: getLanguage(), // Default to English
   uiState: {
     showDiceRoll: false,
     diceValues: [1, 1],
@@ -1136,4 +1146,14 @@ export const useGameStore = create<GameStore>((set, get) => ({
     }));
   },
   
+  // Set language
+  setLanguage: (lang: Language) => {
+    setLanguage(lang); // Save to localStorage
+    set({ language: lang });
+  },
+  
+  // Get translations
+  getTranslations: () => {
+    return t(get().language);
+  },
 }));

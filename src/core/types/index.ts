@@ -188,3 +188,6 @@ export interface UIState {
   showStatistics: boolean;
   showTutorial: boolean;
 }
+
+// Language type
+export type Language = 'en' | 'ja';

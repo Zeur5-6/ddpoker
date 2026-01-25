@@ -11,6 +11,7 @@
   2. [vercel.com](https://vercel.com)でアカウント作成
   3. 「New Project」→ GitHubリポジトリを選択
   4. 自動でデプロイ完了（`npm run build`が自動実行）
+- **カスタムドメイン設定**: 詳細は `VERCEL_DOMAIN.md` を参照
 
 #### 2. **Netlify**
 - **メリット**: 無料、フォーム機能、サーバーレス関数
