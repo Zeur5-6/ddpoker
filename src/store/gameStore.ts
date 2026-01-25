@@ -16,7 +16,7 @@ import {
   HandRank,
   Language,
 } from '../core/types';
-import { getLanguage, setLanguage, t, type Translations } from '../utils/i18n';
+import { getLanguage, setLanguage, t, formatMessage, translations, type Translations } from '../utils/i18n';
 import {
   createGameState,
   startNewRound,
@@ -123,7 +123,11 @@ const initialStatistics: GameStatistics = {
 
 export const useGameStore = create<GameStore>((set, get) => ({
   // Initial State
-  gameState: createGameState(),
+  gameState: (() => {
+    const lang = getLanguage();
+    const t = lang === 'en' ? translations.en : translations.ja;
+    return createGameState(DEFAULT_CONFIG, t, formatMessage);
+  })(),
   config: DEFAULT_CONFIG,
   statistics: initialStatistics,
   language: getLanguage(), // Default to English
@@ -144,7 +148,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
   // Initialize game
   initGame: (configOverride) => {
     const config = { ...DEFAULT_CONFIG, ...configOverride };
-    const gameState = createGameState(config);
+    const t = get().getTranslations();
+    const gameState = createGameState(config, t, formatMessage);
     // Reset all state including stopping any CPU processing
     // BUT keep statistics (don't reset them)
     const currentStatistics = get().statistics;
@@ -176,7 +181,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
   // Start a new round
   startRound: () => {
     const { gameState, config } = get();
-    const newState = startNewRound(gameState, config);
+    const t = get().getTranslations();
+    const newState = startNewRound(gameState, config, t, formatMessage);
     set({ 
       gameState: newState,
       searchCards: null,
@@ -209,7 +215,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
     await delay(1200);
     
     // Setup phase - this rolls the dice
-    const { state: newState, diceResults } = setupPhase(gameState);
+    const t = get().getTranslations();
+    const { state: newState, diceResults } = setupPhase(gameState, t, formatMessage);
     
     // Update UI with human player's dice (stop rolling animation)
     const humanResult = diceResults.get('human');
@@ -250,7 +257,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const { gameState } = get();
     // Play sound before dealing cards
     soundManager.play('card-deal');
-    const newState = dealCards(gameState);
+    const t = get().getTranslations();
+    const newState = dealCards(gameState, t, formatMessage);
     set({ gameState: newState });
   },
   
@@ -289,7 +297,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
         break;
     }
     
-    let newState = processBettingAction(gameState, humanPlayer.id, action, safeAmount);
+    const t = get().getTranslations();
+    let newState = processBettingAction(gameState, humanPlayer.id, action, safeAmount, t, formatMessage);
     set({ gameState: newState });
     
     // Check if we need to deal cards
@@ -297,7 +306,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
       // Play sound before dealing cards
       soundManager.play('card-deal');
       setTimeout(async () => {
-        const dealtState = dealCards(get().gameState);
+        const t = get().getTranslations();
+        const dealtState = dealCards(get().gameState, t, formatMessage);
         set({ gameState: dealtState });
         
         // Wait and start action phase CPU turns if needed
@@ -311,7 +321,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
     
     // Check for showdown
     if (newState.phase === GamePhase.SHOWDOWN && !newState.winner) {
-      const finalState = showdown(newState);
+      const t = get().getTranslations();
+      const finalState = showdown(newState, t, formatMessage);
       set({ gameState: finalState });
       
       // Play card flip sound for showdown
@@ -416,7 +427,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
         break;
     }
     
-    const newState = processAPAction(gameState, humanPlayer.id, action, cardIndex, searchSelection);
+    const t = get().getTranslations();
+    const newState = processAPAction(gameState, humanPlayer.id, action, t, formatMessage, cardIndex, searchSelection);
     set({ gameState: newState, searchCards: null });
     
     // Move to betting phase 2 if action phase complete
@@ -477,7 +489,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
       // Check phase - if showdown, run showdown if needed and return
       if (currentState.phase === GamePhase.SHOWDOWN) {
         if (!currentState.winner) {
-          const finalState = showdown(currentState);
+          const t = get().getTranslations();
+          const finalState = showdown(currentState, t, formatMessage);
           set({ gameState: finalState });
           
           // Play card flip sound for showdown
@@ -549,7 +562,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
         // In action phase, only skip if folded (all-in players can still use AP)
         if (currentState.phase === GamePhase.ACTION_PHASE && currentPlayer.isFolded) {
           // Folded players can't act in action phase - force pass
-          const passedState = processAPAction(currentState, currentPlayer.id, 'pass');
+          const t = get().getTranslations();
+          const passedState = processAPAction(currentState, currentPlayer.id, 'pass', t, formatMessage);
           set({ gameState: passedState });
           await delay(100);
           continue;
@@ -568,9 +582,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
             let advancedState = { ...currentState };
             if (currentState.phase === GamePhase.BET_PHASE_1) {
               soundManager.play('card-deal');
-              advancedState = dealCards(advancedState);
+              const t = get().getTranslations();
+              advancedState = dealCards(advancedState, t, formatMessage);
             } else {
-              const finalState = showdown(advancedState);
+              const t = get().getTranslations();
+              const finalState = showdown(advancedState, t, formatMessage);
               set({ gameState: finalState });
               if (finalState.isGiantKilling) {
                 set(state => ({
@@ -656,7 +672,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
             let advancedState = { ...currentState };
             if (currentState.phase === GamePhase.BET_PHASE_1) {
               soundManager.play('card-deal');
-              advancedState = dealCards(advancedState);
+              const t = get().getTranslations();
+              advancedState = dealCards(advancedState, t, formatMessage);
             } else {
               advancedState = { ...advancedState, phase: GamePhase.SHOWDOWN };
             }
@@ -681,7 +698,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
       // Only skip if truly eliminated (chips <= 0 AND not all-in AND no current bet)
       const isEliminated = currentPlayer.chips <= 0 && !currentPlayer.isAllIn && currentPlayer.currentBet <= 0;
       if (isEliminated && currentState.phase === GamePhase.ACTION_PHASE) {
-        const passedState = processAPAction(currentState, currentPlayer.id, 'pass');
+        const t = get().getTranslations();
+        const passedState = processAPAction(currentState, currentPlayer.id, 'pass', t, formatMessage);
         set({ gameState: passedState });
         await delay(100);
         continue;
@@ -693,7 +711,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
         if (remainingAP <= 0) {
           // This CPU is done, but engine should have moved to next player
           // If we're stuck, force a pass
-          const passedState = processAPAction(currentState, currentPlayer.id, 'pass');
+          const t = get().getTranslations();
+          const passedState = processAPAction(currentState, currentPlayer.id, 'pass', t, formatMessage);
           set({ gameState: passedState });
           
           // Check if phase changed
@@ -706,7 +725,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
               // Action phase completed and went to showdown
               // Run showdown and return
               if (!passedState.winner) {
-                const finalState = showdown(passedState);
+                const t = get().getTranslations();
+                const finalState = showdown(passedState, t, formatMessage);
                 set({ gameState: finalState });
                 
                 // Play card flip sound for showdown
@@ -824,7 +844,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
       }
       
       // Take CPU turn
-      let newState = cpuTakeTurn(currentState);
+      const t = get().getTranslations();
+      let newState = cpuTakeTurn(currentState, t, formatMessage);
       
       // Validate state - check for NaN in pot
       if (!Number.isFinite(newState.pot)) {
@@ -839,7 +860,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
       if (newState.phase === GamePhase.DEAL) {
         soundManager.play('card-deal');
         await delay(400);
-        const dealtState = dealCards(newState);
+        const t = get().getTranslations();
+        const dealtState = dealCards(newState, t, formatMessage);
         set({ gameState: dealtState });
         // Continue loop to check if next player is CPU
         await delay(300);
@@ -849,7 +871,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
       // Check for SHOWDOWN phase (transition from ACTION_PHASE or BET_PHASE_2)
       if (newState.phase === GamePhase.SHOWDOWN) {
         if (!newState.winner) {
-          const finalState = showdown(newState);
+          const t = get().getTranslations();
+      const finalState = showdown(newState, t, formatMessage);
           set({ gameState: finalState });
           
           // Play card flip sound for showdown
@@ -910,7 +933,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
         // when processAPAction -> checkActionPhaseComplete transitions to showdown
         if ((newState.phase as GamePhase) === GamePhase.SHOWDOWN) {
           if (!newState.winner) {
-            const finalState = showdown(newState);
+            const t = get().getTranslations();
+      const finalState = showdown(newState, t, formatMessage);
             set({ gameState: finalState });
             soundManager.play('card-flip');
             const humanPlayer = finalState.players.find(p => p.isHuman);
@@ -961,7 +985,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
         }
         // No AP used but same player - something is wrong, force pass
         console.warn('CPU stuck in action phase, forcing pass');
-        const passedState = processAPAction(newState, newPlayer.id, 'pass');
+        const t = get().getTranslations();
+        const passedState = processAPAction(newState, newPlayer.id, 'pass', t, formatMessage);
         set({ gameState: passedState });
         await delay(300);
         continue;
@@ -978,13 +1003,15 @@ export const useGameStore = create<GameStore>((set, get) => ({
       if (playersWhoCanAct.length === 0) {
         if (newState.phase === GamePhase.BET_PHASE_1) {
           // Force advance to DEAL phase
-          const advancedState = advanceToNextPhase(newState);
+          const t = get().getTranslations();
+          const advancedState = advanceToNextPhase(newState, t, formatMessage);
           set({ gameState: advancedState });
           // DEAL phase will be handled in next iteration
           await delay(300);
           continue;
         } else if (newState.phase === GamePhase.BET_PHASE_2) {
-          const showdownState = showdown(newState);
+          const t = get().getTranslations();
+          const showdownState = showdown(newState, t, formatMessage);
           soundManager.play('card-flip');
           set({ gameState: showdownState });
           
@@ -1023,12 +1050,14 @@ export const useGameStore = create<GameStore>((set, get) => ({
       // If we couldn't find anyone, force advance phase
       console.warn('CPU turn: same player and phase in betting, forcing advance');
       if (newState.phase === GamePhase.BET_PHASE_1) {
-        const advancedState = advanceToNextPhase(newState);
+        const t = get().getTranslations();
+        const advancedState = advanceToNextPhase(newState, t, formatMessage);
         set({ gameState: advancedState });
         await delay(300);
         continue;
       } else if (newState.phase === GamePhase.BET_PHASE_2) {
-        const showdownState = showdown(newState);
+        const t = get().getTranslations();
+        const showdownState = showdown(newState, t, formatMessage);
         soundManager.play('card-flip');
         set({ gameState: showdownState });
         return;

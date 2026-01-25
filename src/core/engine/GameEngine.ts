@@ -12,6 +12,7 @@ import {
   DEFAULT_CONFIG,
   BLIND_LEVELS,
   SidePot,
+  HandRank,
 } from '../types';
 import { createShuffledDeck } from '../models/Deck';
 import {
@@ -30,6 +31,7 @@ import {
 import { getRandomPersona, decideBettingAction, decideAPAction } from '../models/CPUPlayer';
 import { createJoker } from '../models/Card';
 import { compareHands } from '../poker/HandEvaluator';
+import { Translations, formatMessage } from '../../utils/i18n';
 
 // Check if player is still in the round (not folded)
 function isInRound(player: PlayerState): boolean {
@@ -50,7 +52,11 @@ function canAct(player: PlayerState): boolean {
 }
 
 // Create initial game state
-export function createGameState(config: GameConfig = DEFAULT_CONFIG): GameState {
+export function createGameState(
+  config: GameConfig = DEFAULT_CONFIG,
+  t: Translations,
+  formatMessage: (template: string, values: Record<string, string | number>) => string
+): GameState {
   const players: PlayerState[] = [];
   
   // Create human player
@@ -88,12 +94,17 @@ export function createGameState(config: GameConfig = DEFAULT_CONFIG): GameState 
     winner: null,
     winnings: [],
     isGiantKilling: false,
-    message: 'ゲームを開始してください',
+    message: t.messages.gameStart,
   };
 }
 
 // Start a new round
-export function startNewRound(state: GameState, config: GameConfig = DEFAULT_CONFIG): GameState {
+export function startNewRound(
+  state: GameState,
+  config: GameConfig = DEFAULT_CONFIG,
+  t: Translations,
+  formatMessage: (template: string, values: Record<string, string | number>) => string
+): GameState {
   // Reset deck
   const deck = createShuffledDeck();
   
@@ -112,8 +123,8 @@ export function startNewRound(state: GameState, config: GameConfig = DEFAULT_CON
       players,
       winner: winner?.id || null,
       message: winner 
-        ? `🏆 ${winner.name} の完全勝利！ゲーム終了！`
-        : 'ゲーム終了',
+        ? formatMessage(t.messages.completeVictory, { name: winner.name })
+        : t.messages.gameEnd,
     };
   }
   
@@ -150,8 +161,8 @@ export function startNewRound(state: GameState, config: GameConfig = DEFAULT_CON
   
   const blindsChanged = newBlindLevel > state.blindLevel;
   const message = blindsChanged
-    ? `ラウンド ${newRoundNumber} - ⬆️ ブラインド上昇！ ${currentBlinds.sb}/${currentBlinds.bb}`
-    : `ラウンド ${newRoundNumber} - ブラインド ${currentBlinds.sb}/${currentBlinds.bb}`;
+    ? formatMessage(t.messages.blindIncrease, { round: newRoundNumber, sb: currentBlinds.sb, bb: currentBlinds.bb })
+    : formatMessage(t.messages.roundStart, { round: newRoundNumber, sb: currentBlinds.sb, bb: currentBlinds.bb });
   
   return {
     ...state,
@@ -181,7 +192,9 @@ export function startNewRound(state: GameState, config: GameConfig = DEFAULT_CON
 
 // Setup phase: Pay blinds, ante and roll dice
 export function setupPhase(
-  state: GameState
+  state: GameState,
+  t: Translations,
+  formatMessage: (template: string, values: Record<string, string | number>) => string
 ): { state: GameState; diceResults: Map<string, { dice: [number, number]; ap: number; isZorro: boolean }> } {
   let newState = { ...state };
   const diceResults = new Map<string, { dice: [number, number]; ap: number; isZorro: boolean }>();
@@ -282,14 +295,18 @@ export function setupPhase(
     lastRaiseIndex: bbIndex, // BB counts as the last "raise"
     bettingStartIndex: utgIndex,
     playersActedThisRound: new Set<string>(),
-    message: `第1ベッティングフェーズ (SB: ${blinds.sb} / BB: ${blinds.bb})`,
+    message: formatMessage(t.messages.bettingPhase1, { sb: blinds.sb, bb: blinds.bb }),
   };
   
   return { state: newState, diceResults };
 }
 
 // Deal cards to all players
-export function dealCards(state: GameState): GameState {
+export function dealCards(
+  state: GameState,
+  t: Translations,
+  formatMessage: (template: string, values: Record<string, string | number>) => string
+): GameState {
   let deck = [...state.deck];
   const players = state.players.map(player => {
     if (player.isFolded) return player;
@@ -320,7 +337,7 @@ export function dealCards(state: GameState): GameState {
     deck,
     phase: GamePhase.ACTION_PHASE,
     currentPlayerIndex: startIndex,
-    message: 'アクションフェーズ - APを使って手札を強化',
+    message: t.messages.dealingCards,
   };
 }
 
@@ -329,7 +346,9 @@ export function processBettingAction(
   state: GameState,
   playerId: string,
   action: BettingAction,
-  amount: number
+  amount: number,
+  t: Translations,
+  formatMessage: (template: string, values: Record<string, string | number>) => string
 ): GameState {
   const playerIndex = state.players.findIndex(p => p.id === playerId);
   if (playerIndex === -1) return state;
@@ -353,25 +372,25 @@ export function processBettingAction(
   switch (action) {
     case 'fold':
       player = fold(player);
-      newState.message = `${player.name} がフォールド`;
+      newState.message = formatMessage(t.messages.playerFolded, { name: player.name });
       break;
       
     case 'check':
       if (toCall > 0) return state; // Can't check if there's a bet to call
-      newState.message = `${player.name} がチェック`;
+      newState.message = formatMessage(t.messages.playerChecked, { name: player.name });
       break;
       
     case 'call':
       // Can't call if there's nothing to call (should use check instead)
       if (toCall <= 0) {
         // Treat as check
-        newState.message = `${player.name} がチェック`;
+        newState.message = formatMessage(t.messages.playerChecked, { name: player.name });
         break;
       }
       const callAmount = Math.min(toCall, player.chips);
       player = placeBet(player, callAmount);
       newState.pot = (newState.pot || 0) + callAmount;
-      newState.message = `${player.name} が ${callAmount} でコール`;
+      newState.message = formatMessage(t.messages.playerCalled, { name: player.name, amount: callAmount });
       break;
       
     case 'bet':
@@ -383,7 +402,7 @@ export function processBettingAction(
       newState.currentBet = player.currentBet;
       newState.lastRaiseAmount = safeAmount; // The raise amount is the bet itself
       newState.lastRaiseIndex = playerIndex;
-      newState.message = `${player.name} が ${safeAmount} をベット`;
+      newState.message = formatMessage(t.messages.playerBet, { name: player.name, amount: safeAmount });
       break;
       
     case 'raise':
@@ -401,7 +420,7 @@ export function processBettingAction(
       newState.currentBet = player.currentBet;
       newState.lastRaiseAmount = actualRaiseSize;
       newState.lastRaiseIndex = playerIndex;
-      newState.message = `${player.name} が ${player.currentBet} にレイズ`;
+      newState.message = formatMessage(t.messages.playerRaised, { name: player.name, amount: player.currentBet });
       break;
       
     case 'all-in':
@@ -425,7 +444,7 @@ export function processBettingAction(
           newState.lastRaiseIndex = playerIndex;
         }
       }
-      newState.message = `${player.name} がオールイン！ (${allInAmount})`;
+      newState.message = formatMessage(t.messages.playerAllIn, { name: player.name, amount: allInAmount });
       break;
   }
   
@@ -443,7 +462,7 @@ export function processBettingAction(
   newState = moveToNextBettingPlayer(newState);
   
   // Then check if betting round is complete
-  newState = checkBettingRoundComplete(newState);
+    newState = checkBettingRoundComplete(newState, t, formatMessage);
   
   return newState;
 }
@@ -453,6 +472,8 @@ export function processAPAction(
   state: GameState,
   playerId: string,
   action: APAction,
+  t: Translations,
+  formatMessage: (template: string, values: Record<string, string | number>) => string,
   cardIndex?: number,
   searchSelection?: number // For search action: which of the 3 cards to keep
 ): GameState {
@@ -486,7 +507,7 @@ export function processAPAction(
         player = afterDiscard;
       }
       player.apUsed += cost;
-      newState.message = `${player.name} が1枚交換 (コスト: ${cost} AP)`;
+      newState.message = formatMessage(t.messages.playerRedraw, { name: player.name, cost });
       break;
       
     case 'search':
@@ -511,7 +532,7 @@ export function processAPAction(
       discardPile.push(searchDiscarded);
       player = afterSearchDiscard;
       player.apUsed += cost;
-      newState.message = `${player.name} がサーチ (コスト: ${cost} AP)`;
+      newState.message = formatMessage(t.messages.playerSearch, { name: player.name, cost });
       break;
       
     case 'add':
@@ -521,7 +542,7 @@ export function processAPAction(
         player = addCardToHand(player, addedCard);
       }
       player.apUsed += cost;
-      newState.message = `${player.name} が1枚追加 (コスト: ${cost} AP)`;
+      newState.message = formatMessage(t.messages.playerAdd, { name: player.name, cost });
       break;
       
     case 'buyJoker':
@@ -536,12 +557,12 @@ export function processAPAction(
       player = addCardToHand(afterJokerDiscard, createJoker());
       player.hasBoughtJoker = true;
       player.apUsed += cost;
-      newState.message = `${player.name} がジョーカーを購入！ (コスト: ${cost} AP)`;
+      newState.message = formatMessage(t.messages.playerBuyJoker, { name: player.name, cost });
       break;
       
     case 'pass':
       player.apUsed = player.ap; // Mark all AP as used
-      newState.message = `${player.name} がパス`;
+      newState.message = formatMessage(t.messages.playerPass, { name: player.name });
       break;
   }
   
@@ -562,7 +583,7 @@ export function processAPAction(
     newState = moveToNextActionPlayer(newState);
     
     // Check if action phase is complete
-    newState = checkActionPhaseComplete(newState);
+    newState = checkActionPhaseComplete(newState, t, formatMessage);
   }
   
   return newState;
@@ -615,18 +636,22 @@ function moveToNextActionPlayer(state: GameState): GameState {
 }
 
 // Check if betting round is complete
-function checkBettingRoundComplete(state: GameState): GameState {
+function checkBettingRoundComplete(
+  state: GameState,
+  t: Translations,
+  formatMessage: (template: string, values: Record<string, string | number>) => string
+): GameState {
   const playersInRound = state.players.filter(p => isInRound(p));
   const playersWhoCanAct = state.players.filter(p => canAct(p));
   
   // If only one player remains (others folded), they win immediately (no Giant Killing)
   if (playersInRound.length === 1) {
-    return distributePotToSingleWinner(state, playersInRound[0].id, false);
+    return distributePotToSingleWinner(state, playersInRound[0].id, false, t, formatMessage);
   }
   
   // If no one can act anymore (all are folded or all-in), move to next phase
   if (playersWhoCanAct.length === 0) {
-    return advanceToNextPhase(state);
+    return advanceToNextPhase(state, t, formatMessage);
   }
   
   // Calculate the maximum bet among all players in round (including all-in players)
@@ -657,7 +682,7 @@ function checkBettingRoundComplete(state: GameState): GameState {
     
     // If acting player has matched the maximum bet and there's at least one all-in
     if (actingPlayer.currentBet >= maxBetInRound && allInPlayers.length > 0) {
-      return advanceToNextPhase(state);
+      return advanceToNextPhase(state, t, formatMessage);
     }
     
     // If acting player has matched and there are no all-in players, check if we've gone around
@@ -666,7 +691,7 @@ function checkBettingRoundComplete(state: GameState): GameState {
       const backToRaiser = state.lastRaiseIndex !== -1 && state.currentPlayerIndex === state.lastRaiseIndex;
       const backToStart = state.currentBet === 0 && state.currentPlayerIndex === state.bettingStartIndex;
       if (backToRaiser || backToStart) {
-        return advanceToNextPhase(state);
+        return advanceToNextPhase(state, t, formatMessage);
       }
     }
   }
@@ -683,7 +708,7 @@ function checkBettingRoundComplete(state: GameState): GameState {
     
     // Complete the round if all have matched and we've gone around
     if (backToRaiser || backToStart || noRaiseYet) {
-      return advanceToNextPhase(state);
+      return advanceToNextPhase(state, t, formatMessage);
     }
   }
   
@@ -691,7 +716,11 @@ function checkBettingRoundComplete(state: GameState): GameState {
 }
 
 // Advance to the next phase
-export function advanceToNextPhase(state: GameState): GameState {
+export function advanceToNextPhase(
+  state: GameState,
+  t: Translations,
+  formatMessage: (template: string, values: Record<string, string | number>) => string
+): GameState {
   // Reset current bets for next phase
   const players = state.players.map(p => ({
     ...p,
@@ -715,7 +744,7 @@ export function advanceToNextPhase(state: GameState): GameState {
       bettingStartIndex: startIndex,
       playersActedThisRound: new Set<string>(),
       currentPlayerIndex: startIndex,
-      message: 'カードを配ります',
+      message: t.messages.dealingCards,
     };
   } else if (state.phase === GamePhase.BET_PHASE_2) {
     return {
@@ -727,7 +756,7 @@ export function advanceToNextPhase(state: GameState): GameState {
       lastRaiseAmount: 0,
       playersActedThisRound: new Set<string>(),
       currentPlayerIndex: startIndex,
-      message: 'ショーダウン！',
+      message: t.messages.showdown,
     };
   }
   
@@ -747,7 +776,11 @@ export function advanceToNextPhase(state: GameState): GameState {
 // }
 
 // Check if action phase is complete
-function checkActionPhaseComplete(state: GameState): GameState {
+function checkActionPhaseComplete(
+  state: GameState,
+  t: Translations,
+  formatMessage: (template: string, values: Record<string, string | number>) => string
+): GameState {
   const activePlayers = state.players.filter(p => isInRound(p));
   
   // Check if all players have used all AP or passed
@@ -803,7 +836,7 @@ function checkActionPhaseComplete(state: GameState): GameState {
         lastRaiseIndex: -1,
         bettingStartIndex: showdownIndex,
         playersActedThisRound: new Set<string>(),
-        message: 'ショーダウン！',
+        message: t.messages.showdown,
       };
     }
     
@@ -816,7 +849,7 @@ function checkActionPhaseComplete(state: GameState): GameState {
       lastRaiseIndex: -1,
       bettingStartIndex: startIndex,
       playersActedThisRound: playersActed,
-      message: '第2ベッティングフェーズ',
+      message: t.messages.bettingPhase2,
     };
   }
   
@@ -888,7 +921,11 @@ function calculateSidePots(state: GameState): SidePot[] {
 }
 
 // Showdown - determine winner(s) and distribute pots
-export function showdown(state: GameState): GameState {
+export function showdown(
+  state: GameState,
+  t: Translations,
+  formatMessage: (template: string, values: Record<string, string | number>) => string
+): GameState {
   const activePlayers = state.players.filter(p => isInRound(p));
   
   if (activePlayers.length === 0) {
@@ -897,7 +934,7 @@ export function showdown(state: GameState): GameState {
   
   // If only one player left (others folded), they win the whole pot - NO side pots needed
   if (activePlayers.length === 1) {
-    return distributePotToSingleWinner(state, activePlayers[0].id, false);
+    return distributePotToSingleWinner(state, activePlayers[0].id, false, t, formatMessage);
   }
   
   // Calculate side pots
@@ -959,7 +996,7 @@ export function showdown(state: GameState): GameState {
   // Distribute each pot
   for (let potIndex = 0; potIndex < sidePots.length; potIndex++) {
     const pot = sidePots[potIndex];
-    const potName = potIndex === 0 ? 'メインポット' : `サイドポット${potIndex}`;
+    const potName = potIndex === 0 ? t.ui.mainPot : formatMessage(t.ui.sidePot, { index: potIndex });
     
     // Find the best hand among eligible players for this pot
     const eligibleResults = handResults.filter(hr => 
@@ -1084,7 +1121,7 @@ export function showdown(state: GameState): GameState {
         winningsInfo.push({
           playerId: mainWinnerId,
           amount: bonusCollected,
-          potType: `Giant Killingボーナス (${bonusDetails.join(', ')})`,
+          potType: `Giant Killing Bonus (${bonusDetails.join(', ')})`,
         });
       }
     }
@@ -1094,15 +1131,24 @@ export function showdown(state: GameState): GameState {
   const mainWinnerHand = handResults[0].result;
   let message = '';
   
+  const handRankName = t.handRanks[HandRank[mainWinnerHand.rank] as keyof typeof t.handRanks];
   if (sidePots.length === 1) {
     // Simple case - one pot
-    message = `${handResults[0].player.name} の勝利！ ${mainWinnerHand.rankName} で ${sidePots[0].amount} チップ獲得`;
+    message = formatMessage(t.messages.winnerWithHand, { 
+      name: handResults[0].player.name, 
+      hand: handRankName, 
+      amount: sidePots[0].amount 
+    });
   } else {
     // Multiple pots
     const potWinners = [...new Set(winningsInfo.map(w => w.playerId))];
     if (potWinners.length === 1) {
       const totalWon = winningsInfo.filter(w => w.playerId === potWinners[0]).reduce((s, w) => s + w.amount, 0);
-      message = `${state.players.find(p => p.id === potWinners[0])?.name} の勝利！ ${mainWinnerHand.rankName} で ${totalWon} チップ獲得`;
+      message = formatMessage(t.messages.winnerWithHand, { 
+        name: state.players.find(p => p.id === potWinners[0])?.name || '', 
+        hand: handRankName, 
+        amount: totalWon 
+      });
     } else {
       message = winningsInfo.map(w => {
         const player = state.players.find(p => p.id === w.playerId);
@@ -1116,12 +1162,23 @@ export function showdown(state: GameState): GameState {
     const bonusInfo = winningsInfo.find(w => w.playerId === mainWinnerId && w.potType.includes('Giant Killing'));
     const bonusType = bonusInfo?.potType || '';
     
+    const bonusTypeClean = bonusType.replace(/^.*Giant Killing.*?\(/, '').replace(/\)$/, '');
     if (isGiantKilling) {
-      // 2.0倍が含まれる場合は特別なメッセージ（演出あり）
-      message = `🎉 GIANT KILLING! 🎉 ${mainWinner?.name} がAP ${mainWinner?.ap} で大逆転！ ${message} + ボーナス ${bonusCollected} (${bonusType.replace('Giant Killingボーナス (', '').replace(')', '')})`;
+      // 2.0倍が含まれる場合 - 特別なメッセージ（演出あり）
+      message = formatMessage(t.messages.giantKilling, { 
+        name: mainWinner?.name || '', 
+        ap: mainWinner?.ap || 0, 
+        message, 
+        bonus: bonusCollected, 
+        type: bonusTypeClean 
+      });
     } else {
-      // 1.5倍のみの場合は通常のメッセージにボーナス情報を追加（演出なし）
-      message = `${message} + ボーナス ${bonusCollected} (${bonusType.replace('Giant Killingボーナス (', '').replace(')', '')})`;
+      // 1.5倍のみの場合 - 通常のメッセージにボーナス情報を追加（演出なし）
+      message = formatMessage(t.messages.bonusOnly, { 
+        message, 
+        bonus: bonusCollected, 
+        type: bonusTypeClean 
+      });
     }
   }
   
@@ -1142,7 +1199,7 @@ export function showdown(state: GameState): GameState {
       pot: 0,
       phase: GamePhase.SHOWDOWN,
       message: finalWinner 
-        ? `🏆 ${finalWinner.name} の完全勝利！ゲーム終了！`
+        ? formatMessage(t.messages.completeVictory, { name: finalWinner.name })
         : message,
     };
   }
@@ -1161,7 +1218,13 @@ export function showdown(state: GameState): GameState {
 }
 
 // Simple pot distribution when only one player remains (all others folded)
-function distributePotToSingleWinner(state: GameState, winnerId: string, _isShowdownWin: boolean): GameState {
+function distributePotToSingleWinner(
+  state: GameState,
+  winnerId: string,
+  _isShowdownWin: boolean,
+  t: Translations,
+  formatMessage: (template: string, values: Record<string, string | number>) => string
+): GameState {
   const winnerIndex = state.players.findIndex(p => p.id === winnerId);
   if (winnerIndex === -1) return state;
   
@@ -1173,7 +1236,7 @@ function distributePotToSingleWinner(state: GameState, winnerId: string, _isShow
     chips: updatedPlayers[winnerIndex].chips + state.pot,
   };
   
-  const winningsInfo = [{ playerId: winnerId, amount: state.pot, potType: 'メインポット' }];
+  const winningsInfo = [{ playerId: winnerId, amount: state.pot, potType: t.ui.mainPot }];
   
   // After distributing chips, check for game over conditions
   // Count active players (those with chips > 0)
@@ -1192,8 +1255,8 @@ function distributePotToSingleWinner(state: GameState, winnerId: string, _isShow
       pot: 0,
       phase: GamePhase.SHOWDOWN,
       message: finalWinner 
-        ? `🏆 ${finalWinner.name} の完全勝利！ゲーム終了！`
-        : `${winner.name} の勝利！ (他全員フォールド) ${state.pot} チップ獲得`,
+        ? formatMessage(t.messages.completeVictory, { name: finalWinner.name })
+        : formatMessage(t.messages.allFolded, { name: winner.name, amount: state.pot }),
     };
   }
   
@@ -1206,12 +1269,16 @@ function distributePotToSingleWinner(state: GameState, winnerId: string, _isShow
     isGiantKilling: false, // No Giant Killing when everyone folds
     pot: 0,
     phase: GamePhase.SHOWDOWN,
-    message: `${winner.name} の勝利！ (他全員フォールド) ${state.pot} チップ獲得`,
+      message: formatMessage(t.messages.allFolded, { name: winner.name, amount: state.pot }),
   };
 }
 
 // CPU takes its turn
-export function cpuTakeTurn(state: GameState): GameState {
+export function cpuTakeTurn(
+  state: GameState,
+  t: Translations,
+  formatMessage: (template: string, values: Record<string, string | number>) => string
+): GameState {
   const currentPlayer = state.players[state.currentPlayerIndex];
   
   if (currentPlayer.isHuman || currentPlayer.isFolded) {
@@ -1225,13 +1292,13 @@ export function cpuTakeTurn(state: GameState): GameState {
       return state;
     }
     const { action, amount } = decideBettingAction(currentPlayer, state);
-    return processBettingAction(state, currentPlayer.id, action, amount);
+    return processBettingAction(state, currentPlayer.id, action, amount, t, formatMessage);
   }
   
   if (state.phase === GamePhase.ACTION_PHASE) {
     // In action phase, all-in players can still use AP
     const { action, cardIndex } = decideAPAction(currentPlayer, state);
-    return processAPAction(state, currentPlayer.id, action, cardIndex);
+    return processAPAction(state, currentPlayer.id, action, t, formatMessage, cardIndex);
   }
   
   return state;

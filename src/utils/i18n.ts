@@ -138,6 +138,8 @@ export interface Translations {
     bettingRules: string;
     tips: string;
     bonus2x: string;
+    mainPot: string;
+    sidePot: string;
     tutorialBasicRules: string[];
     tutorialAPActions: string[];
     tutorialGiantKilling: string[];
@@ -161,7 +163,7 @@ export interface Translations {
   };
 }
 
-const translations: Record<Language, Translations> = {
+export const translations: Record<Language, Translations> = {
   en: {
     phases: {
       LOBBY: 'Lobby',
@@ -300,6 +302,8 @@ const translations: Record<Language, Translations> = {
       bettingRules: 'Betting',
       tips: 'Tips',
       bonus2x: '💰 Bonus 2x! 💰',
+      mainPot: 'Main Pot',
+      sidePot: 'Side Pot {index}',
       tutorialBasicRules: [
         'Roll 2 dice to determine AP (Action Points)',
         'If you roll doubles (same number), you can buy a Joker',
@@ -491,6 +495,8 @@ const translations: Record<Language, Translations> = {
       bettingRules: 'ベッティング',
       tips: 'ヒント',
       bonus2x: '💰 ボーナス 2倍！ 💰',
+      mainPot: 'メインポット',
+      sidePot: 'サイドポット{index}',
       tutorialBasicRules: [
         'サイコロを2つ振ってAP（行動ポイント）を決定します',
         'ゾロ目（同じ数字）が出ると、ジョーカーを購入できます',
